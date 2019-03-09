@@ -39,7 +39,36 @@ const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group"
 											</div>
 </div>`;
 
+const SummaryField = (fields, fieldLabels) => {
+	return (
+		<ul>
+			<li>
+				{fieldLabels[testFieldIdAttr]}: {fields.text}{' '}
+			</li>
+			<li>
+				{fieldLabels[checkboxFieldIdAttr]}:
+				<ul>
+					{fields.checkboxes.map(box => (
+						<li key={box}>{fieldLabels[box]}</li>
+					))}
+				</ul>
+			</li>
+		</ul>
+	);
+};
+
+function getFieldLabel(idAttr) {
+	return document.querySelectorAll(`[for="${idAttr}"]`)[0].innerHTML;
+}
+
+function getCheckboxValue(idAttr) {
+	return document.getElementById(idAttr).value;
+}
 function Form() {
+	const fieldLabels = useRef({});
+	const setFieldLabels = newValues => {
+		fieldLabels.current = { ...fieldLabels.current, ...newValues };
+	};
 	/**
 	 * Text field
 	 *
@@ -52,6 +81,9 @@ function Form() {
 			textRef.current = document.getElementById(testFieldIdAttr);
 			textRef.current.value = text;
 			textRef.current.onkeypress = e => setText(e.target.value);
+			setFieldLabels({
+				[testFieldIdAttr]: getFieldLabel(testFieldIdAttr)
+			});
 			return () => {};
 		},
 		[text]
@@ -63,39 +95,53 @@ function Form() {
 	 * https://daveceddia.com/useeffect-hook-examples/
 	 */
 	const [checkboxes, setCheckboxes] = useState(['fld_8317391_1_opt1595081']);
-	const checkboxRef = useRef(null);
-	useEffect(() => {
-		checkboxRef.current = {
-			el: document.getElementById(checkboxFieldIdAttr),
-			boxes: document.querySelectorAll(`input[data-field="${checkboxFieldId}"]`)
-		};
-		const { boxes } = checkboxRef.current;
-
-		function getValuesFormCheckboxes(boxes) {
-			let values = [];
-			if (boxes.length) {
-				boxes.forEach(box => {
-					if (box.checked) {
-						values.push(box.id);
-					}
-				});
-			}
-			return values;
-		}
-
-		setCheckboxes(getValuesFormCheckboxes(boxes));
-
-		if (boxes.length) {
-			boxes.forEach(box =>
-				box.addEventListener('change', () =>
-					setCheckboxes(getValuesFormCheckboxes(boxes))
+	const checkboxRef = useRef({ el: null, boxes: null });
+	useEffect(
+		() => {
+			checkboxRef.current = {
+				el: document.getElementById(checkboxFieldIdAttr),
+				boxes: document.querySelectorAll(
+					`input[data-field="${checkboxFieldId}"]`
 				)
-			);
-		}
-		return () => {
-			console.log('Checkbox effect unmounted');
-		};
-	}, checkboxes);
+			};
+			const { boxes } = checkboxRef.current;
+			if (boxes.length) {
+				let boxLabels = {
+					[checkboxFieldIdAttr]: getFieldLabel(checkboxFieldIdAttr)
+				};
+				boxes.forEach(box => {
+					boxLabels[box.id] = getCheckboxValue(box.id);
+				});
+				setFieldLabels(boxLabels);
+			}
+
+			function getValuesFormCheckboxes(boxes) {
+				let values = [];
+				if (boxes.length) {
+					boxes.forEach(box => {
+						if (box.checked) {
+							values.push(box.id);
+						}
+					});
+				}
+				return values;
+			}
+
+			setCheckboxes(getValuesFormCheckboxes(boxes));
+
+			if (boxes.length) {
+				boxes.forEach(box =>
+					box.addEventListener('change', () =>
+						setCheckboxes(getValuesFormCheckboxes(boxes))
+					)
+				);
+			}
+			return () => {
+				console.log('Checkbox effect unmounted');
+			};
+		},
+		[1]
+	);
 
 	return (
 		<div className="form">
@@ -109,17 +155,13 @@ function Form() {
 			</div>
 
 			<div>
-				<ul>
-					<li>Text: {text} </li>
-					<li>
-						Checkboxes:
-						<ul>
-							{checkboxes.map(box => (
-								<li key={box}>{box}</li>
-							))}
-						</ul>
-					</li>
-				</ul>
+				{SummaryField(
+					{
+						text,
+						checkboxes
+					},
+					fieldLabels.current
+				)}
 			</div>
 		</div>
 	);
