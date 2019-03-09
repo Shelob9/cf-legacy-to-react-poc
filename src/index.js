@@ -1,6 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './styles.css';
+import useLegacyTextField from './hooks/useLegacyTextField';
+import {
+	getCheckboxValue,
+	getFieldLabel
+} from './domUtil';
+
 
 const testFieldIdAttr = 'fld_3023758_1';
 const checkboxFieldId = 'fld_8317391';
@@ -40,7 +46,6 @@ const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group"
 </div>`;
 
 const SummaryField = (fields, fieldLabels) => {
-	console.log(fields,fieldLabels);
 	return (
 		<ul>
 			{Object.keys(fields).map( fieldIdAttr=> {
@@ -64,46 +69,15 @@ const SummaryField = (fields, fieldLabels) => {
 	);
 };
 
-function getFieldLabel(idAttr) {
-	return document.querySelectorAll(`[for="${idAttr}"]`)[0].innerHTML;
-}
 
-function getCheckboxValue(idAttr) {
-	return document.getElementById(idAttr).value;
-}
+
+
 function Form({ values, onChange }) {
 	const fieldLabels = useRef({});
 	const setFieldLabels = newValues => {
 		fieldLabels.current = { ...fieldLabels.current, ...newValues };
 	};
-	/**
-	 * Text field
-	 *
-	 * https://daveceddia.com/useeffect-hook-examples/
-	 */
-	const [text, setText] = useState(values[testFieldIdAttr]);
-	const updateText = newValue => {
-		setText(newValue);
-		onChange({ [testFieldIdAttr]: newValue });
-	};
-	const textRef = useRef(null);
-
-	useEffect(
-		() => {
-			textRef.current = document.getElementById(testFieldIdAttr);
-			textRef.current.value = text;
-			textRef.current.onkeypress = e => updateText(e.target.value);
-			setFieldLabels({
-				[testFieldIdAttr]: getFieldLabel(testFieldIdAttr)
-			});
-			return () => {
-				setFieldLabels({
-					[testFieldIdAttr]: getFieldLabel(testFieldIdAttr)
-				});
-			};
-		},
-		[text]
-	);
+	const [text] = useLegacyTextField(values[testFieldIdAttr], testFieldIdAttr,onChange, setFieldLabels);
 
 	/**
 	 * Checkbox field
