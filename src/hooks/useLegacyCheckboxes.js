@@ -8,10 +8,9 @@ import getFieldLabel from "../domUtil/getFieldLabel";
  * @param {Array} initialValues
  * @param {string} idAttr Id attribute
  * @param {Function} formChangeFunction onChange function for form
- * @param {Function} setFieldLabels Function to set field values from DOM (Remove?)
  * @return {*[]}
  */
-export default function useLegacyCheckboxes(initialValues,idAttr, formChangeFunction, setFieldLabels) {
+export default function useLegacyCheckboxes(initialValues,idAttr, formChangeFunction, ) {
 	const [checkboxes, setCheckboxes] = useState(initialValues);
 	const checkboxRef = useRef({el: null, boxes: null});
 
@@ -35,7 +34,7 @@ export default function useLegacyCheckboxes(initialValues,idAttr, formChangeFunc
 				boxes.forEach(box => {
 					box.checked = checkboxes.includes(box.id);
 				});
-				setFieldLabels(boxLabels);
+
 			}
 
 			function getValuesFormCheckboxes(boxes) {

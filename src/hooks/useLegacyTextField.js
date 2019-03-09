@@ -7,10 +7,9 @@ import getFieldLabel from  '../domUtil/getFieldLabel';
  * @param {String|number} initialValue
  * @param {string} idAttr Id attribute
  * @param {Function} formChangeFunction onChange function for form
- * @param {Function} setFieldLabels Function to set field values from DOM (Remove?)
  * @return {*[]}
  */
-export default  function useLegacyTextField(initialValue, idAttr,formChangeFunction, setFieldLabels) {
+export default  function useLegacyTextField(initialValue, idAttr,formChangeFunction) {
 	const [text, setText] = useState(initialValue);
 	const updateText = newValue => {
 		setText(newValue);
@@ -23,13 +22,8 @@ export default  function useLegacyTextField(initialValue, idAttr,formChangeFunct
 			textRef.current = document.getElementById(idAttr);
 			textRef.current.value = text;
 			textRef.current.onkeypress = e => updateText(e.target.value);
-			setFieldLabels({
-				[idAttr]: getFieldLabel(idAttr)
-			});
 			return () => {
-				setFieldLabels({
-					[idAttr]: getFieldLabel(idAttr)
-				});
+
 			};
 		},
 		[text]
