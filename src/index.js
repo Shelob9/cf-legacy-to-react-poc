@@ -1,21 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import './styles.css';
-import useLegacyTextField from './hooks/useLegacyTextField';
+import {
+	useLegacyTextField,
+	useLegacyCheckboxes
+} from './hooks';
 import {
 	getCheckboxValue,
 	getFieldLabel
 } from './domUtil';
 
 
-const testFieldIdAttr = 'fld_3023758_1';
+const textFieldId = 'fld_3023758_1';
 const checkboxFieldId = 'fld_8317391';
 const checkboxFieldIdAttr = 'fld_8317391_1';
 
 const TXT_FIELD = `
 <div data-field-wrapper="fld_3023758" class="form-group" id="fld_3023758_1-wrap">
-	<label id="fld_3023758Label" for="${testFieldIdAttr}" class="control-label">CF Field</label>
-	<input    type="text" data-field="fld_3023758" class=" form-control" id="${testFieldIdAttr}" name="fld_3023758" value="" data-type="text"   aria-labelledby="fld_3023758Label" >			</div>
+	<label id="fld_3023758Label" for="${textFieldId}" class="control-label">CF Field</label>
+	<input    type="text" data-field="fld_3023758" class=" form-control" id="${textFieldId}" name="fld_3023758" value="" data-type="text"   aria-labelledby="fld_3023758Label" >			</div>
 </div>`;
 
 const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group" id="fld_8317391_1-wrap">
@@ -71,75 +74,14 @@ const SummaryField = (fields, fieldLabels) => {
 
 
 
-
 function Form({ values, onChange }) {
 	const fieldLabels = useRef({});
 	const setFieldLabels = newValues => {
 		fieldLabels.current = { ...fieldLabels.current, ...newValues };
 	};
-	const [text] = useLegacyTextField(values[testFieldIdAttr], testFieldIdAttr,onChange, setFieldLabels);
+	const [text] = useLegacyTextField(values[textFieldId], textFieldId,onChange, setFieldLabels);
 
-	/**
-	 * Checkbox field
-	 *
-	 * https://daveceddia.com/useeffect-hook-examples/
-	 */
-	const [checkboxes, setCheckboxes] = useState(values[checkboxFieldIdAttr]);
-	const checkboxRef = useRef({ el: null, boxes: null });
-
-	const updateCheckboxes = newValues => {
-		setCheckboxes(newValues);
-		onChange({ [checkboxFieldIdAttr]: newValues });
-	};
-	useEffect(
-		() => {
-			checkboxRef.current = {
-				el: document.getElementById(checkboxFieldIdAttr),
-				boxes: document.querySelectorAll(
-					`input[data-field="${checkboxFieldId}"]`
-				)
-			};
-			const { boxes } = checkboxRef.current;
-			if (boxes.length) {
-				let boxLabels = {
-					[checkboxFieldIdAttr]: getFieldLabel(checkboxFieldIdAttr)
-				};
-				boxes.forEach(box => {
-					if(checkboxes.includes(box.id)){
-						box.checked = true;
-					}else {
-						box.checked = false;
-					}
-
-				});
-				setFieldLabels(boxLabels);
-			}
-
-			function getValuesFormCheckboxes(boxes) {
-				let values = [];
-				if (boxes.length) {
-					boxes.forEach(box => {
-						if (box.checked) {
-							values.push(box.id);
-						}
-					});
-				}
-				return values;
-			}
-
-			if (boxes.length) {
-				boxes.forEach(box => {
-					box.addEventListener('change', () =>
-						updateCheckboxes(getValuesFormCheckboxes(boxes))
-					);
-				});
-			}
-			return () => {
-				console.log('Checkbox effect unmounted');
-			};
-		},
-		[1]
-	);
+	const [checkboxes] = useLegacyCheckboxes(values[checkboxFieldIdAttr],checkboxFieldIdAttr, onChange, setFieldLabels);
 
 	return (
 		<div className="form">
@@ -155,7 +97,7 @@ function Form({ values, onChange }) {
 			<div>
 				{SummaryField(
 					{
-						[testFieldIdAttr]:text,
+						[textFieldId]:text,
 						[checkboxFieldIdAttr]:checkboxes
 					},
 					fieldLabels.current
@@ -168,7 +110,7 @@ function Form({ values, onChange }) {
 function App() {
 	const [showForm, setShowForm] = useState(true);
 	const [formValues, setFormValues] = useState({
-		[testFieldIdAttr]: 'Default Text!',
+		[textFieldId]: 'Default Text!',
 		[checkboxFieldIdAttr]: ['fld_8317391_1_opt1319483']
 	});
 
@@ -186,7 +128,7 @@ function App() {
 				/>
 			</div>
 			{showForm && <Form values={formValues} onChange={onChange} />}
-			<p>{formValues[testFieldIdAttr]}</p>
+			<p>{formValues[textFieldId]}</p>
 			<p>{formValues[checkboxFieldIdAttr].length}</p>
 		</div>
 	);

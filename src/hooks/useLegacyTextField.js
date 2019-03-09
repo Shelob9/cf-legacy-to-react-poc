@@ -1,5 +1,15 @@
 import {useEffect, useRef, useState} from "react";
 import getFieldLabel from  '../domUtil/getFieldLabel';
+
+/**
+ * Hook that manages text fields that exist on the DOM as HTML
+ *
+ * @param {String|number} initialValue
+ * @param {string} idAttr Id attribute
+ * @param {Function} formChangeFunction onChange function for form
+ * @param {Function} setFieldLabels Function to set field values from DOM (Remove?)
+ * @return {*[]}
+ */
 export default  function useLegacyTextField(initialValue, idAttr,formChangeFunction, setFieldLabels) {
 	const [text, setText] = useState(initialValue);
 	const updateText = newValue => {
