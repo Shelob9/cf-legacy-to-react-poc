@@ -1,11 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
+import './styles.css';
 
 const testFieldIdAttr = 'fld_3023758_1';
 const checkboxFieldId = 'fld_8317391';
 const checkboxFieldIdAttr = 'fld_8317391_1';
 
-import './styles.css';
 const TXT_FIELD = `
 <div data-field-wrapper="fld_3023758" class="form-group" id="fld_3023758_1-wrap">
 	<label id="fld_3023758Label" for="${testFieldIdAttr}" class="control-label">CF Field</label>
