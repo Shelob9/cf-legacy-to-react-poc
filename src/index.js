@@ -25,7 +25,7 @@ const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group"
 																	<div class="checkbox">
 				
                 <label for="fld_8317391_1_opt1595081">
-                            <input checked type="checkbox" data-label="b" data-field="fld_8317391" id="fld_8317391_1_opt1595081" class="fld_8317391_1" name="fld_8317391[opt1595081]" value="b" data-type="checkbox" data-checkbox-field="fld_8317391_1" data-calc-value="2">
+                            <input  type="checkbox" data-label="b" data-field="fld_8317391" id="fld_8317391_1_opt1595081" class="fld_8317391_1" name="fld_8317391[opt1595081]" value="b" data-type="checkbox" data-checkbox-field="fld_8317391_1" data-calc-value="2">
                     b                </label>
 
                 					</div>
@@ -64,7 +64,7 @@ function getFieldLabel(idAttr) {
 function getCheckboxValue(idAttr) {
 	return document.getElementById(idAttr).value;
 }
-function Form() {
+function Form({ values, onChange }) {
 	const fieldLabels = useRef({});
 	const setFieldLabels = newValues => {
 		fieldLabels.current = { ...fieldLabels.current, ...newValues };
@@ -74,17 +74,26 @@ function Form() {
 	 *
 	 * https://daveceddia.com/useeffect-hook-examples/
 	 */
-	const [text, setText] = useState('Default Text');
+	const [text, setText] = useState(values.text);
+	const updateText = newValue => {
+		setText(newValue);
+		onChange({ text: newValue });
+	};
 	const textRef = useRef(null);
+
 	useEffect(
 		() => {
 			textRef.current = document.getElementById(testFieldIdAttr);
 			textRef.current.value = text;
-			textRef.current.onkeypress = e => setText(e.target.value);
+			textRef.current.onkeypress = e => updateText(e.target.value);
 			setFieldLabels({
 				[testFieldIdAttr]: getFieldLabel(testFieldIdAttr)
 			});
-			return () => {};
+			return () => {
+				setFieldLabels({
+					[testFieldIdAttr]: getFieldLabel(testFieldIdAttr)
+				});
+			};
 		},
 		[text]
 	);
@@ -94,8 +103,13 @@ function Form() {
 	 *
 	 * https://daveceddia.com/useeffect-hook-examples/
 	 */
-	const [checkboxes, setCheckboxes] = useState(['fld_8317391_1_opt1595081']);
+	const [checkboxes, setCheckboxes] = useState(values.checkboxes);
 	const checkboxRef = useRef({ el: null, boxes: null });
+
+	const updateCheckboxes = newValues => {
+		setCheckboxes(newValues);
+		onChange({ checkboxes: newValues });
+	};
 	useEffect(
 		() => {
 			checkboxRef.current = {
@@ -127,14 +141,13 @@ function Form() {
 				return values;
 			}
 
-			setCheckboxes(getValuesFormCheckboxes(boxes));
-
 			if (boxes.length) {
-				boxes.forEach(box =>
+				boxes.forEach(box => {
+					box.checked = undefined !== checkboxes.find(b => box.id === b);
 					box.addEventListener('change', () =>
-						setCheckboxes(getValuesFormCheckboxes(boxes))
-					)
-				);
+						updateCheckboxes(getValuesFormCheckboxes(boxes))
+					);
+				});
 			}
 			return () => {
 				console.log('Checkbox effect unmounted');
@@ -169,7 +182,14 @@ function Form() {
 
 function App() {
 	const [showForm, setShowForm] = useState(true);
+	const [formValues, setFormValues] = useState({
+		text: 'Default Text!',
+		checkboxes: ['fld_8317391_1_opt1319483']
+	});
 
+	const onChange = newValues => {
+		setFormValues({ ...formValues, ...newValues });
+	};
 	return (
 		<div className="App">
 			<div>
@@ -182,7 +202,9 @@ function App() {
 				/>
 			</div>
 			<p>{showForm}</p>
-			{showForm && <Form />}
+			{showForm && <Form values={formValues} onChange={onChange} />}
+			<p>{formValues.text}</p>
+			<p>{formValues.checkboxes.length}</p>
 		</div>
 	);
 }
