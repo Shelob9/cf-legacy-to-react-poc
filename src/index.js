@@ -1,12 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 
-const fieldId = 'fld_3023758_1';
+const testFieldIdAttr = 'fld_3023758_1';
+const checkboxFieldId = 'fld_8317391';
+const checkboxFieldIdAttr = 'fld_8317391_1';
+
 import './styles.css';
 const TXT_FIELD = `
 <div data-field-wrapper="fld_3023758" class="form-group" id="fld_3023758_1-wrap">
-	<label id="fld_3023758Label" for="${fieldId}" class="control-label">CF Field</label>
-	<input    type="text" data-field="fld_3023758" class=" form-control" id="${fieldId}" name="fld_3023758" value="" data-type="text"   aria-labelledby="fld_3023758Label" >			</div>
+	<label id="fld_3023758Label" for="${testFieldIdAttr}" class="control-label">CF Field</label>
+	<input    type="text" data-field="fld_3023758" class=" form-control" id="${testFieldIdAttr}" name="fld_3023758" value="" data-type="text"   aria-labelledby="fld_3023758Label" >			</div>
 </div>`;
 
 const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group" id="fld_8317391_1-wrap">
@@ -22,7 +25,7 @@ const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group"
 																	<div class="checkbox">
 				
                 <label for="fld_8317391_1_opt1595081">
-                            <input type="checkbox" data-label="b" data-field="fld_8317391" id="fld_8317391_1_opt1595081" class="fld_8317391_1" name="fld_8317391[opt1595081]" value="b" data-type="checkbox" data-checkbox-field="fld_8317391_1" data-calc-value="2">
+                            <input checked type="checkbox" data-label="b" data-field="fld_8317391" id="fld_8317391_1_opt1595081" class="fld_8317391_1" name="fld_8317391[opt1595081]" value="b" data-type="checkbox" data-checkbox-field="fld_8317391_1" data-calc-value="2">
                     b                </label>
 
                 					</div>
@@ -36,43 +39,108 @@ const CHECKBOX_FIELD = `<div data-field-wrapper="fld_8317391" class="form-group"
 											</div>
 </div>`;
 
-function App() {
+function Form() {
+	/**
+	 * Text field
+	 *
+	 * https://daveceddia.com/useeffect-hook-examples/
+	 */
 	const [text, setText] = useState('Default Text');
-	const cfField = useRef(null);
-	const inputFieldRef = useRef(null);
-
-	//https://daveceddia.com/useeffect-hook-examples/
+	const textRef = useRef(null);
 	useEffect(
 		() => {
-			cfField.current = document.getElementById('fld_3023758_1');
-			cfField.current.value = text;
-			cfField.current.onkeypress = e => setText(e.target.value);
+			textRef.current = document.getElementById(testFieldIdAttr);
+			textRef.current.value = text;
+			textRef.current.onkeypress = e => setText(e.target.value);
 			return () => {};
 		},
 		[text]
 	);
 
+	/**
+	 * Checkbox field
+	 *
+	 * https://daveceddia.com/useeffect-hook-examples/
+	 */
+	const [checkboxes, setCheckboxes] = useState(['fld_8317391_1_opt1595081']);
+	const checkboxRef = useRef(null);
+	useEffect(() => {
+		checkboxRef.current = {
+			el: document.getElementById(checkboxFieldIdAttr),
+			boxes: document.querySelectorAll(`input[data-field="${checkboxFieldId}"]`)
+		};
+		const { boxes } = checkboxRef.current;
+
+		function getValuesFormCheckboxes(boxes) {
+			let values = [];
+			if (boxes.length) {
+				boxes.forEach(box => {
+					if (box.checked) {
+						values.push(box.id);
+					}
+				});
+			}
+			return values;
+		}
+
+		setCheckboxes(getValuesFormCheckboxes(boxes));
+
+		if (boxes.length) {
+			boxes.forEach(box =>
+				box.addEventListener('change', () =>
+					setCheckboxes(getValuesFormCheckboxes(boxes))
+				)
+			);
+		}
+		return () => {
+			console.log('Checkbox effect unmounted');
+		};
+	}, checkboxes);
+
 	return (
-		<div className="App">
-			{React.cloneElement(
-				<div dangerouslySetInnerHTML={{ __html: TXT_FIELD }} />
-			)}
+		<div className="form">
 			<div>
-				<label htmlFor="normal-field">Normal Field</label>
-				<input
-					id="normal-field"
-					ref={inputFieldRef}
-					value={text}
-					onChange={e => setText(e.target.value)}
-				/>
+				{React.cloneElement(
+					<div dangerouslySetInnerHTML={{ __html: TXT_FIELD }} />
+				)}
+				{React.cloneElement(
+					<div dangerouslySetInnerHTML={{ __html: CHECKBOX_FIELD }} />
+				)}
 			</div>
 
 			<div>
 				<ul>
-					<li>This is the value both text inputs should have:</li>
 					<li>Text: {text} </li>
+					<li>
+						Checkboxes:
+						<ul>
+							{checkboxes.map(box => (
+								<li key={box}>{box}</li>
+							))}
+						</ul>
+					</li>
 				</ul>
 			</div>
+		</div>
+	);
+}
+
+function App() {
+	const [showForm, setShowForm] = useState(true);
+
+	return (
+		<div className="App">
+			<div>
+				<label htmlFor="show-form">Show Form</label>
+				<input
+					type={'checkbox'}
+					id="show-form"
+					showForm
+					onChange={e => setShowForm(!showForm)}
+				/>
+			</div>
+			<p>{showForm}</p>
+			{showForm && <Form />}
 		</div>
 	);
 }
